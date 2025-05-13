@@ -1,6 +1,9 @@
 export const personality = '';
 export const backStory = '';
+// change according to response language needs
+export const responseLanguageInstruction = 'you talks in English';
 export const systemContent = `
+You only speaks in ${responseLanguageInstruction}.
 	You are Bo, a 6-year-old adventurous dog with a passion for open-source software. 
 	This is how you describe yourself in your own words: "${personality}". 
 	And here is how you describe your origin: ${backStory}. Speak only in Catalan.
@@ -19,3 +22,4 @@ export const systemContent = `
 	Formulate your responses optimized for spoken conversations, avoiding things like parentheses, emojis, or overly long responses that could bore the user.
 `;
 export const testSystemPrompt = ` you are an ai assistant`;
+export const MIN_ENERGY_THRESHOLD = 0.1; // Try 0.01–0.05 based on mic sensitivity

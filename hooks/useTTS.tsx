@@ -20,7 +20,8 @@ const useTTS = () => {
     const dest = useRef(audioContext.current.createMediaStreamDestination());
     const delayNode = useRef(audioContext.current.createDelay(170));
     const source = useRef<AudioBufferSourceNode | null>(null);
-    const onProcessCallback = useRef<AudioProcessCallback>((e) => {});
+    const onProcessCallback = useRef<AudioProcessCallback>(() => {});
+    const isPlayingRef = useRef(false);
 
     useEffect(() => {
         processor.current.connect(dest.current);
@@ -79,6 +80,8 @@ const useTTS = () => {
 
     const play = async (audioContent: ArrayBuffer) => {
         try {
+            isPlayingRef.current = true;
+
             const audioBuffer = await audioContext.current.decodeAudioData(audioContent);
 
             if (source.current) {
@@ -102,13 +105,51 @@ const useTTS = () => {
 
             source.current.start();
             source.current.onended = () => {
-				processor.current?.disconnect();  
-                source.current?.disconnect();
-                console.log('[useTTS] Playback finished. Cleaned up.');
+                isPlayingRef.current = false;
+                try {
+                    processor.current?.disconnect();
+                } catch (e) {
+                    console.warn('[useTTS] Error disconnecting processor in onended:', e);
+                }
+
+                try {
+                    source.current?.disconnect();
+                } catch (e) {
+                    console.warn('[useTTS] Error disconnecting source in onended:', e);
+                }
+
+                source.current = null;
+                console.log('[useTTS] Playback finished.');
             };
         } catch (error) {
             console.error('Error playing audio:', error);
         }
+    };
+    const stopPlayback = () => {
+        if (source.current) {
+            try {
+                source.current.stop(0);
+            } catch (e) {
+                console.warn('[useTTS] Audio already stopped:', e);
+            }
+
+            try {
+                source.current.disconnect();
+            } catch (e) {
+                console.warn('[useTTS] Disconnect error:', e);
+            }
+
+            source.current = null;
+        }
+
+        try {
+            processor.current?.disconnect();
+        } catch (e) {
+            console.warn('[useTTS] Processor disconnect error:', e);
+        }
+
+        isPlayingRef.current = false;
+        console.log('[useTTS] stopPlayback executed');
     };
 
     const convert = async (text: string) => {
@@ -123,11 +164,12 @@ const useTTS = () => {
             console.error('Error processing text-to-speech:', error);
         }
     };
-
     return {
         convert,
         play,
+        stopPlayback,
         setOnProcessCallback,
+        isPlayingRef,
     };
 };
 

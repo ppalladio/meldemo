@@ -1,9 +1,8 @@
-// Dialog.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import useSpeechRecognition from '@/hooks/useSpeechRecognition';
+import useSpeechRecognition, { CharacterState } from '@/hooks/useSpeechRecognition';
 import useTTS from '@/hooks/useTTS';
 import { Mic, MicOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -11,18 +10,32 @@ import { useEffect, useState } from 'react';
 export default function Dialog() {
     const [inputText, setInputText] = useState('');
     const [aiResponse, setAiResponse] = useState('');
-    const [isRecording, setIsRecording] = useState(false);
     const [isLoadingResponse, setIsLoadingResponse] = useState(false);
     const [history, setHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
 
-    const { startRecording, stopRecording, setOnSpeechFoundCallback } = useSpeechRecognition();
-    const { play, setOnProcessCallback } = useTTS();
+    const { stopPlayback, play, setOnProcessCallback, isPlayingRef } = useTTS();
 
-    // Optional: for animation
+    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback } = useSpeechRecognition();
+
+    const isRecording = characterStateRef.current === CharacterState.Listening;
+
+    const handleMicClick = () => {
+        if (isPlayingRef.current) {
+            console.log('[Dialog] AI speech in progress — stopping it.');
+            stopPlayback();
+        }
+
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    };
+
     useEffect(() => {
         setOnProcessCallback((frame) => {
             const energy = Math.max(...frame.map(Math.abs));
-            // TODO: Trigger mouth/character animation with `energy`
+            // Optional: use `energy` for visual animation feedback
             console.log('Audio energy:', energy);
         });
     }, [setOnProcessCallback]);
@@ -31,13 +44,9 @@ export default function Dialog() {
         setOnSpeechFoundCallback(async (userText) => {
             setInputText(userText);
             setIsLoadingResponse(true);
-            const updatedHistory = [...history, { role: 'user', content: userText }];
-            setHistory(
-                history.map((msg) => ({
-                    role: msg.role,
-                    content: msg.content,
-                })),
-            );
+
+            const updatedHistory = [...history, { role: 'user' as const, content: userText }];
+            setHistory(updatedHistory);
 
             try {
                 const res = await fetch('/api/v1/tts', {
@@ -52,22 +61,16 @@ export default function Dialog() {
                     setHistory((prev) => [...prev, { role: 'assistant', content: data.text }]);
 
                     const audioBuffer = Uint8Array.from(atob(data.audio), (c) => c.charCodeAt(0)).buffer;
-                    await play(audioBuffer); // triggers animation
+                    await play(audioBuffer);
                 }
             } catch (err) {
-                console.error(err);
+                console.error('[Dialog] Error fetching assistant response:', err);
                 setAiResponse('Error processing assistant response.');
             } finally {
                 setIsLoadingResponse(false);
             }
         });
     }, [history, play, setOnSpeechFoundCallback]);
-
-    const handleMicClick = () => {
-        if (isRecording) stopRecording();
-        else startRecording();
-        setIsRecording(!isRecording);
-    };
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center p-6 md:p-24 bg-gray-100">

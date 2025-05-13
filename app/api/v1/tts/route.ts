@@ -21,13 +21,14 @@ export async function POST(req: NextRequest) {
             messages,
         });
 
-        const text = completion.choices[0]?.message?.content ?? '...';
+        const text = ` ${completion.choices[0]?.message?.content ?? '...'}`;
 
         const tts = await openai.audio.speech.create({
             model: 'gpt-4o-mini-tts',
             voice: 'coral',
             input: text,
-            instructions: 'Speak in a friendly and curious tone suitable for a dog character speaking Catalan.',
+            // The instructions field helps control tone and speaking style (e.g., friendly, formal), but does not override the detected language from input
+            // instructions: 'Speak in a friendly and curious tone suitable for a dog character speaking Catalan.',
             response_format: 'mp3',
         });
 
