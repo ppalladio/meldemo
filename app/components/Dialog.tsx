@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import useSpeechRecognition, { CharacterState } from '@/hooks/useSpeechRecognition';
 import useTTS from '@/hooks/useTTS';
 import { Mic, MicOff } from 'lucide-react';
@@ -15,7 +14,7 @@ export default function Dialog() {
 
     const { stopPlayback, play, setOnProcessCallback, isPlayingRef } = useTTS();
 
-    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback } = useSpeechRecognition();
+    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback, isTranscribing } = useSpeechRecognition();
 
     const isRecording = characterStateRef.current === CharacterState.Listening;
 
@@ -35,7 +34,6 @@ export default function Dialog() {
     useEffect(() => {
         setOnProcessCallback((frame) => {
             const energy = Math.max(...frame.map(Math.abs));
-            // Optional: use `energy` for visual animation feedback
             console.log('Audio energy:', energy);
         });
     }, [setOnProcessCallback]);
@@ -73,36 +71,46 @@ export default function Dialog() {
     }, [history, play, setOnSpeechFoundCallback]);
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-6 md:p-24 bg-gray-100">
-            <div className="w-full max-w-2xl space-y-10">
-                <h1 className="text-3xl font-bold text-center">AI Assistant</h1>
+        <div className="w-full max-w-2xl space-y-10 ">
+            <h1 className="text-3xl font-bold text-center">AI assistant</h1>
 
-                <section className="space-y-2">
-                    <h2 className="text-xl font-semibold">Input</h2>
-                    <Card className="p-4 min-h-[150px]">
-                        <p className="whitespace-pre-wrap text-base text-gray-800">{inputText || 'Press the mic and speak.'}</p>
-                    </Card>
-                </section>
+            {/* Input Section */}
+            <section className="space-y-3  ">
+                <div className="bg-white border rounded-xl p-5 shadow-sm min-w-[400px] min-h-[200px] flex flex-col justify-between">
+                    <p className="text-base text-gray-800 whitespace-pre-wrap mb-4">
+                        {isTranscribing ? 'Wait a second...' : inputText || 'Press the mic and speak.'}
+                    </p>
 
-                <div className="flex justify-center">
-                    <Button
-                        onClick={handleMicClick}
-                        className={`gap-2 px-6 py-3 text-lg font-semibold ${isRecording ? 'bg-red-600 hover:bg-red-700' : ''}`}
-                    >
-                        {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-                        {isRecording ? 'Stop Recording' : 'Start Recording'}
-                    </Button>
+                    <div className="flex justify-end">
+                        <Button
+                            onClick={handleMicClick}
+                            className="bg-black text-white px-5 py-2.5 rounded-md text-sm font-medium flex items-center gap-2 hover:bg-gray-900"
+                        >
+                            {isRecording ? (
+                                <>
+                                    <MicOff className="w-4 h-4" />
+                                    Stop Voice Input
+                                </>
+                            ) : (
+                                <>
+                                    <Mic className="w-4 h-4" />
+                                    Start Voice Input
+                                </>
+                            )}
+                        </Button>
+                    </div>
                 </div>
+            </section>
 
-                <section className="space-y-2">
-                    <h2 className="text-xl font-semibold">AI Response</h2>
-                    <Card className="p-4 min-h-[150px]">
-                        <p className="whitespace-pre-wrap text-base text-gray-800">
-                            {isLoadingResponse ? 'Thinking...' : aiResponse || 'AI response will appear here after you speak.'}
-                        </p>
-                    </Card>
-                </section>
-            </div>
-        </main>
+            {/* Response Section */}
+            <section className="space-y-3 ">
+                <h2 className="text-lg font-semibold">AI Response</h2>
+                <div className="bg-white border rounded-xl p-5 shadow-sm  min-w-[400px] min-h-[200px]">
+                    <p className={`text-base whitespace-pre-wrap ${isLoadingResponse || !aiResponse ? 'text-gray-400 italic' : 'text-gray-800'}`}>
+                        {isLoadingResponse ? 'Thinking...' : aiResponse || 'AI response will appear here after you speak and stop recording.'}
+                    </p>
+                </div>
+            </section>
+        </div>
     );
 }

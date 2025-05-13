@@ -1,7 +1,7 @@
 'use client';
 
 import { MIN_ENERGY_THRESHOLD } from '@/lib/constant';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 
 type SpeechFoundCallback = (text: string) => void;
@@ -24,6 +24,7 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
     const source = useRef<MediaStreamAudioSourceNode | null>(null);
     const bars = useRef<(HTMLDivElement | null)[]>([]);
     const hadSpeech = useRef(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
     const characterStateRef = useRef<CharacterState>(CharacterState.Idle);
     const setCharacterState = (state: CharacterState) => {
         characterStateRef.current = state;
@@ -141,9 +142,37 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         }
     };
 
+    // const recognize = async (file: File) => {
+    //     if (isDebugMode) {
+    //         console.log('Debug mode: skipping ASR.');
+    //         onSpeechFoundCallback.current('This is a placeholder transcription in debug mode.');
+    //         return;
+    //     }
+
+    //     const formData = new FormData();
+    //     formData.append('file', file);
+
+    //     try {
+    //         const response = await axios.post('/api/v1/transcribe', formData, {
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //             },
+    //         });
+
+    //         const data = response.data;
+
+    //         const transcript = data.transcription?.trim();
+
+    //         onSpeechFoundCallback.current(transcript);
+    //     } catch (error) {
+    //         if (error instanceof AxiosError) {
+    //             console.error('ASR Error:', error.message);
+    //         }
+    //         throw new Error(`Failed to transcribe audio with status: ${error}`);
+    //     }
+    // };
     const recognize = async (file: File) => {
         if (isDebugMode) {
-            console.log('Debug mode: skipping ASR.');
             onSpeechFoundCallback.current('This is a placeholder transcription in debug mode.');
             return;
         }
@@ -152,25 +181,20 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         formData.append('file', file);
 
         try {
+            setIsTranscribing(true); // ⏳ Show "thinking"
             const response = await axios.post('/api/v1/transcribe', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
             const data = response.data;
-
             const transcript = data.transcription?.trim();
-
             onSpeechFoundCallback.current(transcript);
         } catch (error) {
-            if (error instanceof AxiosError) {
-                console.error('ASR Error:', error.message);
-            }
-            throw new Error(`Failed to transcribe audio with status: ${error}`);
+            console.error('Transcription failed:', error);
+        } finally {
+            setIsTranscribing(false); // ✅ Done
         }
     };
-
     const onMicButtonPressed = () => {
         // Stop any ongoing TTS speech playback before recording
         if (stopPlayback) {
@@ -192,6 +216,7 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         onMicButtonPressed,
         setOnSpeechFoundCallback,
         CharacterState,
+        isTranscribing,
     };
 };
 
