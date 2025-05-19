@@ -5,10 +5,9 @@ import { useEffect, useRef, useState } from 'react';
 
 interface UseSVGProps {
     src: string;
-    hiddenIds: string[];
 }
 
-export function useSVG({ src, hiddenIds }: UseSVGProps) {
+export function useSVG({ src }: UseSVGProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isReady, setIsReady] = useState(false);
     const [groupsById, setGroupsById] = useState<Record<string, G>>({});
@@ -57,17 +56,6 @@ export function useSVG({ src, hiddenIds }: UseSVGProps) {
                 });
                 setPathsById(pathMap);
 
-                currentInstance.find('[id]').forEach((el: SVGJSElement) => {
-                    const id = el.attr('id');
-                    if (id) {
-                        if (hiddenIds.includes(id)) {
-                            el.hide();
-                        } else {
-                            el.show();
-                        }
-                    }
-                });
-
                 setIsReady(true);
             } catch (error) {
                 console.error('Error initializing SVG:', error);
@@ -92,7 +80,7 @@ export function useSVG({ src, hiddenIds }: UseSVGProps) {
             setPathsById({});
             setDraw(null);
         };
-    }, [src, hiddenIds]);
+    }, [src]);
 
     return {
         SVGRef: containerRef,

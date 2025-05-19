@@ -1,7 +1,0 @@
-<svg viewBox="0 0 1600 1600" xmlns="http://www.w3.org/2000/svg">
-  <!-- The eyelid (initially closed, full oval) -->
-  <path id="eyelid"
-    fill="#D9D9D9"
-    d="M400 800 A400 240 0 1 0 1200 800 A400 240 0 1 0 400 800 Z"
-  />
-</svg>
