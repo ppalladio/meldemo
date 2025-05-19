@@ -1,15 +1,18 @@
 'use client';
 
-import { G, List, SVG, Svg, Element as SVGJSElement } from '@svgdotjs/svg.js'; // Added List and SVGJSElement for typing
+import { G, List, SVG, Svg, Element as SVGJSElement } from '@svgdotjs/svg.js';
 import { useEffect, useRef, useState } from 'react';
+
 interface UseSVGProps {
     src: string;
     hiddenIds: string[];
 }
+
 export function useSVG({ src, hiddenIds }: UseSVGProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isReady, setIsReady] = useState(false);
     const [groupsById, setGroupsById] = useState<Record<string, G>>({});
+    const [pathsById, setPathsById] = useState<Record<string, SVGPathElement>>({});
     const [draw, setDraw] = useState<Svg | null>(null);
 
     useEffect(() => {
@@ -31,23 +34,28 @@ export function useSVG({ src, hiddenIds }: UseSVGProps) {
                 currentInstance.svg(svgText);
                 setDraw(currentInstance);
 
-                // Correctly handle the types for elements found by ID
-                const foundElements: List<SVGJSElement> = currentInstance.find('g'); // find('g') returns List<Element>
-                const idMap: Record<string, G> = {};
+                currentInstance.viewbox(0, 0, 2781, 3297).size('100%', '100%');
 
-                foundElements.forEach((element: SVGJSElement) => {
-                    // Since we specifically queried for 'g', we can be reasonably sure
-                    // that these elements are SVG group elements.
-                    // We perform a cast to G here.
-                    // For extreme safety, you could add a runtime check like: if (element instanceof G)
+                const foundGroups: List<SVGJSElement> = currentInstance.find('g');
+                const groupMap: Record<string, G> = {};
+                foundGroups.forEach((element: SVGJSElement) => {
                     const groupElement = element as G;
                     const id = groupElement.attr('id');
                     if (id) {
-                        idMap[id] = groupElement;
+                        groupMap[id] = groupElement;
                     }
                 });
+                setGroupsById(groupMap);
 
-                setGroupsById(idMap);
+                const pathMap: Record<string, SVGPathElement> = {};
+                currentInstance.find('path[id]').forEach((el: SVGJSElement) => {
+                    const id = el.attr('id');
+                    const node = el.node as SVGPathElement;
+                    if (id && node instanceof SVGPathElement) {
+                        pathMap[id] = node;
+                    }
+                });
+                setPathsById(pathMap);
 
                 currentInstance.find('[id]').forEach((el: SVGJSElement) => {
                     const id = el.attr('id');
@@ -65,6 +73,7 @@ export function useSVG({ src, hiddenIds }: UseSVGProps) {
                 console.error('Error initializing SVG:', error);
                 setIsReady(false);
                 setGroupsById({});
+                setPathsById({});
                 setDraw(null);
                 if (currentInstance) {
                     currentInstance.remove();
@@ -80,6 +89,7 @@ export function useSVG({ src, hiddenIds }: UseSVGProps) {
             }
             setIsReady(false);
             setGroupsById({});
+            setPathsById({});
             setDraw(null);
         };
     }, [src, hiddenIds]);
@@ -88,6 +98,7 @@ export function useSVG({ src, hiddenIds }: UseSVGProps) {
         SVGRef: containerRef,
         isReady,
         groupsById,
+        pathsById,
         draw,
     };
 }
