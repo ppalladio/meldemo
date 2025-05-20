@@ -5,7 +5,7 @@ import { useSVG } from '@/hooks/useSVG';
 
 export default function EyeAnimation() {
     const { SVGRef, isReady, pathsById } = useSVG({
-        src: '/v3_flat_adjusted.svg',
+        src: '/mel.svg',
     });
 
     useCharacterAnimation({ isReady, pathsById });

@@ -45,7 +45,7 @@ export function useCharacterAnimation({ isReady, pathsById }: UseCharacterAnimat
                     semi: semiLashId ? pathsById[semiLashId] : null,
                 },
             };
-
+            console.log(paths);
             if (!paths.lid.open || !paths.lid.close || !paths.lash.open || !paths.lash.close) {
                 console.warn(`Missing required morph paths for eye: ${openLidId}`);
                 return null;
@@ -98,9 +98,8 @@ export function useCharacterAnimation({ isReady, pathsById }: UseCharacterAnimat
             const minOpenDelay = 1.2;
             const maxOpenDelay = 2.2;
             const openDelay = Math.random() * (maxOpenDelay - minOpenDelay) + minOpenDelay;
-
-            const useSemi = leftEye.lid.semi && rightEye.lid.semi && leftEye.lash.semi && rightEye.lash.semi && Math.random() < 0.25; // 25% chance to do semi blink
-
+            //  change semi open probabilities
+            const useSemi = leftEye.lid.semi && rightEye.lid.semi && leftEye.lash.semi && rightEye.lash.semi && Math.random() === 1;
             const lidCloseTargetL = useSemi ? leftEye.lid.semi! : leftEye.lid.close;
             const lidCloseTargetR = useSemi ? rightEye.lid.semi! : rightEye.lid.close;
             const lashCloseTargetL = useSemi ? leftEye.lash.semi! : leftEye.lash.close;
