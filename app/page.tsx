@@ -1,4 +1,3 @@
-import dynamic from 'next/dynamic';
 import Character from './components/Character';
 import Dialog from './components/Dialog';
 // const Dialog = dynamic(() => import('./components/Dialog'), {
@@ -6,8 +5,8 @@ import Dialog from './components/Dialog';
 // });
 export default function Home() {
     return (
-        <div className="flex flex-col items-center justify-center  ">
-			<Character/>
+        <div className="flex min-h-screen flex-col items-center justify-center">
+            <Character />
             <Dialog />
         </div>
     );

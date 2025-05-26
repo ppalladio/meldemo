@@ -4,7 +4,7 @@ import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
 import { useEffect } from 'react';
 
 gsap.registerPlugin(MorphSVGPlugin);
-interface UseCharacterAnimationProps {
+interface UseEyesAnimationProps {
     isReady: boolean;
     pathsById: Record<string, SVGPathElement>;
 }
@@ -19,7 +19,7 @@ type MorphPairParams = {
     semiLashId?: string;
 };
 
-export function useCharacterAnimation({ isReady, pathsById }: UseCharacterAnimationProps) {
+export function useEyesAnimation({ isReady, pathsById }: UseEyesAnimationProps) {
     useEffect(() => {
         if (!isReady) return;
 
@@ -45,7 +45,7 @@ export function useCharacterAnimation({ isReady, pathsById }: UseCharacterAnimat
                     semi: semiLashId ? pathsById[semiLashId] : null,
                 },
             };
-            console.log(paths);
+
             if (!paths.lid.open || !paths.lid.close || !paths.lash.open || !paths.lash.close) {
                 console.warn(`Missing required morph paths for eye: ${openLidId}`);
                 return null;
