@@ -1,6 +1,5 @@
-
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * Response return by the synthesize method.
@@ -12,9 +11,7 @@ export interface SynthesizeResponse {
     audioContent: ArrayBuffer;
 }
 
-interface AudioProcessCallback {
-    (e: Float32Array): void;
-}
+type AudioProcessCallback = (e: Float32Array) => void;
 
 const useTTS = () => {
     const audioContext = useRef(new AudioContext());
@@ -24,6 +21,7 @@ const useTTS = () => {
     const source = useRef<AudioBufferSourceNode | null>(null);
     const onProcessCallback = useRef<AudioProcessCallback>(() => {});
     const isPlayingRef = useRef(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
 
     useEffect(() => {
         processor.current.connect(dest.current);
@@ -42,13 +40,9 @@ const useTTS = () => {
 
     const handleVisibilityChange = () => {
         if (document.hidden) {
-            audioContext.current.suspend().then(() => {
-                console.log('audioContext suspended');
-            });
+            audioContext.current.suspend();
         } else {
-            audioContext.current.resume().then(() => {
-                console.log('audioContext resumed');
-            });
+            audioContext.current.resume();
         }
     };
 
@@ -65,13 +59,13 @@ const useTTS = () => {
                 },
                 body: JSON.stringify({ text }),
             });
-            console.log(response);
+            // console.log(response);
             if (!response.ok) {
                 throw new Error(`Failed to generate speech with status: ${response.status}`);
             }
 
             const audioContent = await response.arrayBuffer();
-            console.log('🚀 ~ synthesize ~ audioContent:', audioContent);
+            // console.log('🚀 ~ synthesize ~ audioContent:', audioContent);
 
             return audioContent;
         } catch (error) {
@@ -83,7 +77,7 @@ const useTTS = () => {
     const play = async (audioContent: ArrayBuffer) => {
         try {
             isPlayingRef.current = true;
-
+            setIsSpeaking(true);
             const audioBuffer = await audioContext.current.decodeAudioData(audioContent);
 
             if (source.current) {
@@ -108,6 +102,7 @@ const useTTS = () => {
             source.current.start();
             source.current.onended = () => {
                 isPlayingRef.current = false;
+                setIsSpeaking(false);
                 try {
                     processor.current?.disconnect();
                 } catch (e) {
@@ -121,7 +116,7 @@ const useTTS = () => {
                 }
 
                 source.current = null;
-                console.log('[useTTS] Playback finished.');
+                // console.log('[useTTS] Playback finished.');
             };
         } catch (error) {
             console.error('Error playing audio:', error);
@@ -151,7 +146,7 @@ const useTTS = () => {
         }
 
         isPlayingRef.current = false;
-        console.log('[useTTS] stopPlayback executed');
+        // console.log('[useTTS] stopPlayback executed');
     };
 
     const convert = async (text: string) => {
@@ -171,7 +166,7 @@ const useTTS = () => {
         play,
         stopPlayback,
         setOnProcessCallback,
-        isPlayingRef,
+        isPlaying: isSpeaking,
     };
 };
 

@@ -1,13 +1,16 @@
+'use client';
+
+import useTTS from '@/hooks/useTTS';
 import Character from './components/Character';
 import Dialog from './components/Dialog';
-// const Dialog = dynamic(() => import('./components/Dialog'), {
-//     ssr: false,
-// });
+
 export default function Home() {
+    const tts = useTTS();
+
     return (
         <div className="flex min-h-screen flex-col items-center justify-center">
-            <Character />
-            <Dialog />
+            <Character isSpeaking={tts.isPlaying} />
+            <Dialog {...tts} />
         </div>
     );
 }

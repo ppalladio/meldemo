@@ -2,25 +2,27 @@
 
 import { Button } from '@/components/ui/button';
 import useSpeechRecognition, { CharacterState } from '@/hooks/useSpeechRecognition';
-import useTTS from '@/hooks/useTTS';
+
 import { Mic, MicOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
+interface DialogProps {
+    readonly play: (audio: ArrayBuffer) => Promise<void>;
+    readonly stopPlayback: () => void;
+    readonly isPlaying: boolean;
+}
 
-export default function Dialog() {
+export default function Dialog({ play, stopPlayback, isPlaying }: DialogProps) {
     const [inputText, setInputText] = useState('');
     const [aiResponse, setAiResponse] = useState('');
     const [isLoadingResponse, setIsLoadingResponse] = useState(false);
     const [history, setHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
-
-    const { stopPlayback, play, setOnProcessCallback, isPlayingRef } = useTTS();
 
     const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback, isTranscribing } = useSpeechRecognition();
 
     const isRecording = characterStateRef.current === CharacterState.Listening;
 
     const handleMicClick = () => {
-        if (isPlayingRef.current) {
-            console.log('[Dialog] AI speech in progress — stopping it.');
+        if (isPlaying) {
             stopPlayback();
         }
 
@@ -30,13 +32,6 @@ export default function Dialog() {
             startRecording();
         }
     };
-
-    useEffect(() => {
-        setOnProcessCallback((frame) => {
-            const energy = Math.max(...frame.map(Math.abs));
-            console.log('Audio energy:', energy);
-        });
-    }, [setOnProcessCallback]);
 
     useEffect(() => {
         setOnSpeechFoundCallback(async (userText) => {

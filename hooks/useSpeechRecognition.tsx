@@ -81,12 +81,12 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
             const dataArray = new Float32Array(analyser.current.fftSize);
 
             const energyMonitor = () => {
-                console.log('🚀 ~ energyMonitor ~ characterStateRef.current:', characterStateRef.current);
-                console.log('🚀 ~ energyMonitor ~ analyser.current:', analyser.current);
+                // console.log('🚀 ~ energyMonitor ~ characterStateRef.current:', characterStateRef.current);
+                // console.log('🚀 ~ energyMonitor ~ analyser.current:', analyser.current);
                 if (characterStateRef.current === CharacterState.Listening && analyser.current) {
                     analyser.current.getFloatTimeDomainData(dataArray);
                     const energy = Math.max(...dataArray.map(Math.abs));
-                    console.log('🚀 ~ energyMonitor ~ energy:', energy);
+                    // console.log('🚀 ~ energyMonitor ~ energy:', energy);
                     if (energy > MIN_ENERGY_THRESHOLD) {
                         hadSpeech.current = true;
                     }
@@ -142,35 +142,6 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         }
     };
 
-    // const recognize = async (file: File) => {
-    //     if (isDebugMode) {
-    //         console.log('Debug mode: skipping ASR.');
-    //         onSpeechFoundCallback.current('This is a placeholder transcription in debug mode.');
-    //         return;
-    //     }
-
-    //     const formData = new FormData();
-    //     formData.append('file', file);
-
-    //     try {
-    //         const response = await axios.post('/api/v1/transcribe', formData, {
-    //             headers: {
-    //                 'Content-Type': 'multipart/form-data',
-    //             },
-    //         });
-
-    //         const data = response.data;
-
-    //         const transcript = data.transcription?.trim();
-
-    //         onSpeechFoundCallback.current(transcript);
-    //     } catch (error) {
-    //         if (error instanceof AxiosError) {
-    //             console.error('ASR Error:', error.message);
-    //         }
-    //         throw new Error(`Failed to transcribe audio with status: ${error}`);
-    //     }
-    // };
     const recognize = async (file: File) => {
         if (isDebugMode) {
             onSpeechFoundCallback.current('This is a placeholder transcription in debug mode.');
