@@ -10,7 +10,7 @@ interface CharacterProps {
 }
 
 export default function Character({ isSpeaking }: CharacterProps) {
-    const { SVGRef, isReady, pathsById } = useSVG({ src: '/mel.svg' });
+    const { SVGRef, isReady, pathsById } = useSVG({ src: '/Mel.svg' });
 
     useEyesAnimation({ isReady, pathsById });
     useMouthAnimation({ isReady, pathsById, isSpeaking });
