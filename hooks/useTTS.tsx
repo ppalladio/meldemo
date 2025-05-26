@@ -1,49 +1,41 @@
 'use client';
+
 import { useEffect, useRef, useState } from 'react';
 
-/**
- * Response return by the synthesize method.
- */
 export interface SynthesizeResponse {
-    /**
-     * Encoded audio bytes.
-     */
     audioContent: ArrayBuffer;
 }
 
 type AudioProcessCallback = (e: Float32Array) => void;
 
 const useTTS = () => {
-    const audioContext = useRef(new AudioContext());
-    const processor = useRef(audioContext.current.createScriptProcessor(1024, 1, 1));
-    const dest = useRef(audioContext.current.createMediaStreamDestination());
-    const delayNode = useRef(audioContext.current.createDelay(170));
+    const audioContext = useRef<AudioContext | null>(null);
+    const processor = useRef<ScriptProcessorNode | null>(null);
     const source = useRef<AudioBufferSourceNode | null>(null);
     const onProcessCallback = useRef<AudioProcessCallback>(() => {});
     const isPlayingRef = useRef(false);
     const [isSpeaking, setIsSpeaking] = useState(false);
 
     useEffect(() => {
-        processor.current.connect(dest.current);
-        delayNode.current.delayTime.value = Number(new URL(window.location.href).searchParams.get('audio_delay') ?? '300') / 1000;
-        delayNode.current.connect(audioContext.current.destination);
+        if (typeof window === 'undefined') return;
+
+        audioContext.current = new AudioContext();
+        processor.current = audioContext.current.createScriptProcessor(1024, 1, 1);
+        processor.current.connect(audioContext.current.destination);
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
-            if (source.current) {
-                source.current.stop();
-            }
+            processor.current?.disconnect();
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            audioContext.current?.close();
         };
     }, []);
 
     const handleVisibilityChange = () => {
-        if (document.hidden) {
-            audioContext.current.suspend();
-        } else {
-            audioContext.current.resume();
-        }
+        if (!audioContext.current) return;
+        if (document.hidden) audioContext.current.suspend();
+        else audioContext.current.resume();
     };
 
     const setOnProcessCallback = (callback: AudioProcessCallback) => {
@@ -51,118 +43,60 @@ const useTTS = () => {
     };
 
     const synthesize = async (text: string) => {
-        try {
-            const response = await fetch('/api/v1/tts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ text }),
-            });
-            // console.log(response);
-            if (!response.ok) {
-                throw new Error(`Failed to generate speech with status: ${response.status}`);
-            }
+        const res = await fetch('/api/v1/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text }),
+        });
 
-            const audioContent = await response.arrayBuffer();
-            // console.log('🚀 ~ synthesize ~ audioContent:', audioContent);
-
-            return audioContent;
-        } catch (error) {
-            console.error('Error fetching transcription:', error);
-            throw error;
-        }
+        if (!res.ok) throw new Error(`TTS failed (${res.status})`);
+        return await res.arrayBuffer();
     };
 
     const play = async (audioContent: ArrayBuffer) => {
-        try {
-            isPlayingRef.current = true;
-            setIsSpeaking(true);
-            const audioBuffer = await audioContext.current.decodeAudioData(audioContent);
+        if (!audioContext.current || !processor.current) return;
 
-            if (source.current) {
-                source.current.stop();
-                source.current.disconnect();
-            }
+        const buffer = await audioContext.current.decodeAudioData(audioContent);
+        if (source.current) source.current.stop();
 
-            source.current = audioContext.current.createBufferSource();
-            source.current.buffer = audioBuffer;
+        const src = audioContext.current.createBufferSource();
+        src.buffer = buffer;
+        src.connect(processor.current);
+        src.connect(audioContext.current.destination);
 
-            // Ensure the source is connected to the processor and also directly to the destination.
-            source.current.connect(processor.current);
-            processor.current.connect(audioContext.current.destination); // Ensure processor routes to destination
-            source.current.connect(audioContext.current.destination); // Also connect source directly to destination
+        processor.current.onaudioprocess = (e) => {
+            const data = e.inputBuffer.getChannelData(0);
+            onProcessCallback.current(data);
+        };
 
-            // Set up the audio process event for animations
-            processor.current.onaudioprocess = (e) => {
-                const audioData = e.inputBuffer.getChannelData(0);
-                onProcessCallback.current(audioData); // Trigger the callback that can be linked to your animation
-            };
+        isPlayingRef.current = true;
+        setIsSpeaking(true);
+        source.current = src;
 
-            source.current.start();
-            source.current.onended = () => {
-                isPlayingRef.current = false;
-                setIsSpeaking(false);
-                try {
-                    processor.current?.disconnect();
-                } catch (e) {
-                    console.warn('[useTTS] Error disconnecting processor in onended:', e);
-                }
-
-                try {
-                    source.current?.disconnect();
-                } catch (e) {
-                    console.warn('[useTTS] Error disconnecting source in onended:', e);
-                }
-
-                source.current = null;
-                // console.log('[useTTS] Playback finished.');
-            };
-        } catch (error) {
-            console.error('Error playing audio:', error);
-        }
-    };
-    const stopPlayback = () => {
-        if (source.current) {
-            try {
-                source.current.stop(0);
-            } catch (e) {
-                console.warn('[useTTS] Audio already stopped:', e);
-            }
-
-            try {
-                source.current.disconnect();
-            } catch (e) {
-                console.warn('[useTTS] Disconnect error:', e);
-            }
-
-            source.current = null;
-        }
-
-        try {
+        src.start();
+        src.onended = () => {
+            isPlayingRef.current = false;
+            setIsSpeaking(false);
             processor.current?.disconnect();
-        } catch (e) {
-            console.warn('[useTTS] Processor disconnect error:', e);
-        }
+            src.disconnect();
+            source.current = null;
+        };
+    };
 
+    const stopPlayback = () => {
+        source.current?.stop();
+        source.current?.disconnect();
+        processor.current?.disconnect();
         isPlayingRef.current = false;
-        // console.log('[useTTS] stopPlayback executed');
+        setIsSpeaking(false);
     };
 
-    const convert = async (text: string) => {
-        if (!text) {
-            return;
-        }
-
-        try {
-            const audioContent = await synthesize(text);
-            await play(audioContent);
-        } catch (error) {
-            console.error('Error processing text-to-speech:', error);
-        }
-    };
     return {
-        convert,
+        convert: async (text: string) => {
+            if (!text) return;
+            const content = await synthesize(text);
+            await play(content);
+        },
         play,
         stopPlayback,
         setOnProcessCallback,
