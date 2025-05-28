@@ -3,7 +3,6 @@
 import { useEyesAnimation } from '@/hooks/useEyesAnimation';
 import { useMouthAnimation } from '@/hooks/useMouthAnimation';
 import { useSVG } from '@/hooks/useSVG';
-import { useEffect } from 'react';
 
 interface CharacterProps {
     readonly isSpeaking: boolean;
@@ -14,9 +13,6 @@ export default function Character({ isSpeaking }: CharacterProps) {
 
     useEyesAnimation({ isReady, pathsById });
     useMouthAnimation({ isReady, pathsById, isSpeaking });
-    useEffect(() => {
-        console.log('[Character] isSpeaking:', isSpeaking);
-    }, [isSpeaking]);
 
     const xOffset = 120;
     const yOffset = 100;
