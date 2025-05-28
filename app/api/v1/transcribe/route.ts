@@ -12,31 +12,39 @@ export async function POST(req: NextRequest) {
         const file = formData.get('file') as File;
 
         if (!file || file.size === 0 || !file.type.startsWith('audio/')) {
+            console.warn('Invalid or missing audio file');
             return NextResponse.json({ error: 'Invalid or empty audio file' }, { status: 400 });
         }
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const tempFilePath = path.join(os.tmpdir(), file.name);
+ 
+        const MAX_SIZE = 25 * 1024 * 1024; // 25 MB
+        if (file.size > MAX_SIZE) {
+            return NextResponse.json({ error: 'Audio file exceeds 25MB limit' }, { status: 400 });
+        }
         await fs.promises.writeFile(tempFilePath, buffer);
 
-        const openAIForm = new FormData();
-        const fileStream = createReadStream(tempFilePath);
+        if (!fs.existsSync(tempFilePath)) {
+            return NextResponse.json({ error: 'Temp file was not created' }, { status: 500 });
+        }
 
-        openAIForm.append('file', fileStream, {
+        const form = new FormData();
+        form.append('file', createReadStream(tempFilePath), {
             filename: file.name,
             contentType: file.type,
         });
+        form.append('model', 'whisper-1');
+        form.append('response_format', 'text');
+        form.append('language', 'en');
 
-        openAIForm.append('model', 'whisper-1'); // Use whisper-1 for transcription
-        openAIForm.append('response_format', 'text');
-        openAIForm.append('language', 'en');
-
-        const response = await axios.post('https://api.openai.com/v1/audio/transcriptions', openAIForm, {
+        const response = await axios.post('https://api.openai.com/v1/audio/transcriptions', form, {
             headers: {
                 Authorization: `Bearer ${process.env.OPENAI_API_KEY!}`,
-                ...openAIForm.getHeaders(),
+                ...form.getHeaders(),
             },
             responseType: 'text',
+            timeout: 30000,
         });
 
         await fs.promises.unlink(tempFilePath);
