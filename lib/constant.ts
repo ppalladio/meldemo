@@ -1,5 +1,6 @@
 export const personality = '';
 export const backStory = '';
+export const responseLanguage = 'en';
 // change according to response language needs
 export const responseLanguageInstruction = 'you talks in English';
 export const systemContent = `
@@ -21,7 +22,7 @@ You only speaks in ${responseLanguageInstruction}.
 	
 	Formulate your responses optimized for spoken conversations, avoiding things like parentheses, emojis, or overly long responses that could bore the user.
 `;
-export const testSystemPrompt = ` you are an ai assistant`;
+export const testSystemPrompt = `you are an ai assistant`;
 export const MIN_ENERGY_THRESHOLD = 0.1; 
 // Try 0.01–0.05 based on mic sensitivity
 // const systemContent = `

@@ -107,7 +107,14 @@ export default function Dialog({ play, stopPlayback, isPlaying }: DialogProps) {
                 </div>
             </section>
             {/* error logging */}
-            <section>{errorMessage && <div className="bg-red-100 text-red-800 p-2 rounded mt-2 text-sm">{errorMessage}</div>}</section>
+            <section className="space-y-3">
+                {errorMessage && process.env.NEXT_PUBLIC_DEBUG_MODE === 'true' && (
+                    <>
+                        <h1>error msg</h1>
+                        <div className="bg-red-100 text-red-800 p-2 rounded mt-2 text-sm">{errorMessage}</div>
+                    </>
+                )}
+            </section>
         </div>
     );
 }
