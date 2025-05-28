@@ -24,23 +24,51 @@ This project supports local development and testing, including Cloudflare-based 
 
 ### 🧪 Testing with Playwright
 
-#### API Testing
+### ⚠️ OpenAI Transcription API Limit
 
-> ⚠️ OpenAI's transcription API only supports one request at a time. Set the worker number to `1` to avoid concurrency issues.
+OpenAI's transcription API **only supports one active request at a time**. To prevent concurrency issues, make sure to:
+
+-   **Limit Playwright workers to `1`** (already configured in Playwright settings).
+-   **Start the development server before running API tests**.
+
+---
+
+### ▶️ Step-by-Step Commands
+
+#### 🛠 Optional: Build the project
 
 ```bash
-
-# Run API tests in watch mode
-
-npm  run  test:api
-
+npm run build
 ```
 
-> 🔁 API tests run across multiple browsers. Note: Firefox had known issues with audio file compatibility.
+#### 🚀 Start the development server
+
+Choose one:
+
+**Using a [Cloudflare tunnel](#using-cloudflare-tunnel):**
+
+```bash
+npm run dev:tunnel
+```
+
+**Or running locally:**
+
+```bash
+npm run dev
+```
+
+#### 🧪 Run API tests in watch mode
+
+```bash
+npm run test:api
+```
+
+> 🔁 API tests run across multiple browsers. Note: Firefox and mobile devices had\* known issues with audio file compatibility.
 
 #### UI Testing
 
-> No API calls are made during UI testing, so worker count can be more lenient.
+> No API calls are made during UI testing, so worker count can be more lenient. 
+> TBD
 
 ```bash
 
