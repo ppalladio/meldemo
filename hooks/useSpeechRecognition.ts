@@ -12,7 +12,7 @@ export enum CharacterState {
     Speaking,
 }
 
-// const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
+const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
 
 const useSpeechRecognition = (stopPlayback?: () => void) => {
     const mediaRecorder = useRef<MediaRecorder | null>(null);
@@ -47,7 +47,6 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
             source.current.connect(analyser.current);
 
             const mimeType = supportedTypes.find((type) => MediaRecorder.isTypeSupported(type)) || '';
-            console.log('🎙️ Using MIME type for recording:', mimeType);
 
             mediaRecorder.current = new MediaRecorder(stream.current, { mimeType });
         } catch (err) {
@@ -139,7 +138,7 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         if (recordedChunks.current.length > 0) {
             const blob = new Blob(recordedChunks.current, { type: mediaRecorder.current?.mimeType || 'audio/webm' });
 
-            console.log('🧪 Recorded blob type:', blob.type, 'size:', blob.size);
+            // console.log('🧪 Recorded blob type:', blob.type, 'size:', blob.size);
             if (blob.size === 0) {
                 console.warn('⚠️ Skipping: Empty audio blob');
                 setCharacterState(CharacterState.Idle);
@@ -147,11 +146,11 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
             }
 
             const file = new File([blob], 'recording.webm', { type: blob.type });
-            console.log(blob.type); // should be audio/webm or audio/ogg
-            console.log(blob.size); // should be > 0
+            // console.log(blob.type); // should be audio/webm or audio/ogg
+            // console.log(blob.size); // should be > 0
             recordedChunks.current = [];
 
-            console.log('🚀 ~ stopRecording ~ file:', file.type);
+            // console.log('🚀 ~ stopRecording ~ file:', file.type);
             setCharacterState(CharacterState.Speaking);
             await recognize(file);
         } else {
@@ -161,8 +160,6 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
     };
 
     const recognize = async (file: File) => {
-        // debugging mobiles
-        console.log('Audio file size:', file.size, 'bytes');
         if (file.size === 0) {
             console.warn('Audio file is empty. Skipping transcription.');
             return;
@@ -172,7 +169,9 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         formData.append('file', file);
 
         // debugging
-        // formData.append('debug', isDebugMode.toString());
+        if (isDebugMode) {
+            formData.append('debug', isDebugMode.toString());
+        }
         try {
             setIsTranscribing(true); // ⏳ Show "thinking"
             const response = await axios.post('/api/v1/transcribe', formData);
@@ -195,7 +194,7 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
                 setErrorMessage(`Audio unsupported or malformed (  ${error}`);
             }
         } finally {
-            setIsTranscribing(false); 
+            setIsTranscribing(false);
         }
     };
     const onMicButtonPressed = () => {

@@ -11,7 +11,7 @@
         "start": "next start",
         "lint": "next lint",
         "test": "playwright test",
-        "test:ui": "playwright test --config=playwright.config.ts",
+        "test:ui": "nodemon --ext ts,js,json --watch __tests__ --exec \"npx playwright test --config=playwright.config.ts\"",
         "test:api": "nodemon --ext ts,js,json --watch __tests__ --exec \"npx playwright test --config=playwright.api.config.ts\""
     },
     "dependencies": {

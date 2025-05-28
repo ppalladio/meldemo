@@ -1,4 +1,3 @@
-// hooks/useCharacterAnimation.ts
 import { gsap } from 'gsap';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';
 import { useEffect } from 'react';
