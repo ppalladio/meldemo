@@ -17,7 +17,7 @@ export default function Dialog({ play, stopPlayback, isPlaying }: DialogProps) {
     const [isLoadingResponse, setIsLoadingResponse] = useState(false);
     const [history, setHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
 
-    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback, isTranscribing } = useSpeechRecognition();
+    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback, isTranscribing, errorMessage } = useSpeechRecognition();
 
     const isRecording = characterStateRef.current === CharacterState.Listening;
 
@@ -106,6 +106,8 @@ export default function Dialog({ play, stopPlayback, isPlaying }: DialogProps) {
                     </p>
                 </div>
             </section>
+            {/* error logging */}
+            <section>{errorMessage && <div className="bg-red-100 text-red-800 p-2 rounded mt-2 text-sm">{errorMessage}</div>}</section>
         </div>
     );
 }

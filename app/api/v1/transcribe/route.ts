@@ -46,12 +46,23 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ transcription: transcriptText });
     } catch (error) {
-        let errorMessage = 'Unknown error';
-        if (error instanceof AxiosError) {
-            errorMessage = error.message;
-        } else if (typeof error === 'string') {
-            errorMessage = error;
-        }
-        return NextResponse.json({ error: `Failed to transcribe audio: ${errorMessage}` }, { status: 500 });
-    }
+		let errorMessage = 'Unknown error';
+		if (axios.isAxiosError(error)) {
+			console.error('Axios error response:', {
+				status: error.response?.status,
+				data: error.response?.data,
+				headers: error.response?.headers,
+			});
+			errorMessage = `${error.message} - ${JSON.stringify(error.response?.data)}`;
+		} else if (error instanceof Error) {
+			errorMessage = error.message;
+		} else if (typeof error === 'string') {
+			errorMessage = error;
+		}
+	
+		return NextResponse.json(
+			{ error: `Failed to transcribe audio: ${errorMessage}` },
+			{ status: 500 }
+		);
+	} 
 }

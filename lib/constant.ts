@@ -22,7 +22,8 @@ You only speaks in ${responseLanguageInstruction}.
 	Formulate your responses optimized for spoken conversations, avoiding things like parentheses, emojis, or overly long responses that could bore the user.
 `;
 export const testSystemPrompt = ` you are an ai assistant`;
-export const MIN_ENERGY_THRESHOLD = 0.1; // Try 0.01–0.05 based on mic sensitivity
+export const MIN_ENERGY_THRESHOLD = 0.1; 
+// Try 0.01–0.05 based on mic sensitivity
 // const systemContent = `
 //     Ets Bo, un gos aventurer de 6 anys amb una passió pel programari de codi obert.
 //     Així et descrius amb les teves pròpies paraules: "${personality}".

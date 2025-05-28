@@ -26,6 +26,8 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
     const hadSpeech = useRef(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
     const characterStateRef = useRef<CharacterState>(CharacterState.Idle);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     const setCharacterState = (state: CharacterState) => {
         characterStateRef.current = state;
         _setCharacterState(state);
@@ -143,6 +145,13 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
     };
 
     const recognize = async (file: File) => {
+		// debugging mobiles
+		console.log('Audio file size:', file.size, 'bytes');
+		if (file.size === 0) {
+			console.warn('Audio file is empty. Skipping transcription.');
+			return;
+		}
+		// debugging
         if (isDebugMode) {
             onSpeechFoundCallback.current('This is a placeholder transcription in debug mode.');
             return;
@@ -151,6 +160,8 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         const formData = new FormData();
         formData.append('file', file);
 
+		// debugging 
+		formData.append('debug', isDebugMode.toString());
         try {
             setIsTranscribing(true); // ⏳ Show "thinking"
             const response = await axios.post('/api/v1/transcribe', formData, {
@@ -161,8 +172,18 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
             const transcript = data.transcription?.trim();
             onSpeechFoundCallback.current(transcript);
         } catch (error) {
-            console.error('Transcription failed:', error);
-        } finally {
+			if (axios.isAxiosError(error)) {
+				const status = error.response?.status;
+				const data = error.response?.data;
+				const message = data?.error || error.message;
+		
+				console.error('[Transcribe API Error]', { status, data });
+				setErrorMessage(`Transcription failed (${status}): ${message}`);
+			} else {
+				console.error('[Transcribe Error]', error);
+				setErrorMessage('Transcription failed due to an unexpected error.');
+			}
+		} finally {
             setIsTranscribing(false); // ✅ Done
         }
     };
@@ -188,6 +209,7 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         setOnSpeechFoundCallback,
         CharacterState,
         isTranscribing,
+		errorMessage
     };
 };
 
