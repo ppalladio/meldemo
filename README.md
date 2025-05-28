@@ -1,36 +1,145 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mel Character Demo
 
-## Getting Started
+This project showcases a demo featuring the animated character **Mel**, including support for UI and API testing with Playwright, and public exposure through a Cloudflare Tunnel.
 
-First, run the development server:
+---
+
+## 📦 Installation
+
+```bash
+
+# Install dependencies
+
+npm  install
+
+```
+
+---
+
+## 🚀 Usage
+
+This project supports local development and testing, including Cloudflare-based tunneling and automated tests with Playwright.
+
+---
+
+### 🧪 Testing with Playwright
+
+### ⚠️ OpenAI Transcription API Limit
+
+OpenAI's transcription API **only supports one active request at a time**. To prevent concurrency issues, make sure to:
+
+-   **Limit Playwright workers to `1`** (already configured in Playwright settings).
+-   **Start the development server before running API tests**.
+
+---
+
+### ▶️ Step-by-Step Commands
+
+#### 🛠 Optional: Build the project
+
+```bash
+npm run build
+```
+
+#### 🚀 Start the development server
+
+Choose one:
+
+**Using a [Cloudflare tunnel](#using-cloudflare-tunnel):**
+
+```bash
+npm run dev:tunnel
+```
+
+**Or running locally:**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### 🧪 Run API tests in watch mode
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run test:api
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> 🔁 API tests run across multiple browsers. Note: Firefox and mobile devices had\* known issues with audio file compatibility.
 
-## Learn More
+#### UI Testing
 
-To learn more about Next.js, take a look at the following resources:
+> No API calls are made during UI testing, so worker count can be more lenient. 
+> TBD
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Run UI tests in watch mode
 
-## Deploy on Vercel
+npm  run  test:ui
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🌐 Configuration
+
+### Using Cloudflare Tunnel
+
+To expose your local server through Cloudflare Tunnel:
+
+1. [Create a Cloudflare Tunnel](https://developers.cloudflare.com/learning-paths/clientless-access/connect-private-applications/create-tunnel/)
+
+2. Update your `package.json` script with the tunnel ID:
+
+```json
+
+"dev:webhook": "cloudflared tunnel run [your-tunnel-id]"
+
+```
+
+3. Start the tunnel and development server:
+
+```bash
+
+npm  run  dev:tunnel
+
+```
+
+Your site will now be accessible on both `localhost` and the Cloudflare tunnel URL.
+
+---
+
+### 🎤 OpenAI Prompt Configuration
+
+Prompt configuration for Mel is located in `/lib/constants.ts` and includes the following fields:
+
+-   `personality`: Personality traits of Mel
+
+-   `backStory`: Background context
+
+-   `responseLanguage`: Desired output language
+
+-   `responseLanguageInstruction`: Reinforces the language use
+
+-   `openaiModel`: [OpenAI chat model](https://platform.openai.com/docs/models)
+
+-   `ttsModel`: [Text-to-speech model](https://platform.openai.com/docs/models#tts)
+
+-   `ttsVoice`: [Voice options](https://platform.openai.com/docs/guides/text-to-speech#voice-options)
+
+-   `systemContent` and `testSystemPrompt`: Used to control system-level behavior
+
+Additionally:
+
+-   `MIN_ENERGY_THRESHOLD` is configured to ignore accidental or silent inputs. Adjust this threshold as needed.
+
+---
+
+## ✅ Summary
+
+-   Mel demo project with animated SVG morphing
+
+-   Supports UI/API testing via Playwright
+
+-   Uses Cloudflare Tunnel for public access during development
+
+-   Prompt and voice configurations are centralized in `constants.ts`

@@ -17,7 +17,7 @@ export default function Dialog({ play, stopPlayback, isPlaying }: DialogProps) {
     const [isLoadingResponse, setIsLoadingResponse] = useState(false);
     const [history, setHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
 
-    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback, isTranscribing } = useSpeechRecognition();
+    const { startRecording, stopRecording, characterStateRef, setOnSpeechFoundCallback, isTranscribing, errorMessage } = useSpeechRecognition();
 
     const isRecording = characterStateRef.current === CharacterState.Listening;
 
@@ -105,6 +105,15 @@ export default function Dialog({ play, stopPlayback, isPlaying }: DialogProps) {
                         {isLoadingResponse ? 'Thinking...' : aiResponse || 'AI response will appear here after you speak and stop recording.'}
                     </p>
                 </div>
+            </section>
+            {/* error logging */}
+            <section className="space-y-3">
+                {errorMessage && process.env.NEXT_PUBLIC_DEBUG_MODE === 'true' && (
+                    <>
+                        <h1>error msg</h1>
+                        <div className="bg-red-100 text-red-800 p-2 rounded mt-2 text-sm">{errorMessage}</div>
+                    </>
+                )}
             </section>
         </div>
     );

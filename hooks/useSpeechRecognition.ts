@@ -5,7 +5,7 @@ import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 
 type SpeechFoundCallback = (text: string) => void;
-
+const supportedTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
 export enum CharacterState {
     Idle,
     Listening,
@@ -26,6 +26,8 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
     const hadSpeech = useRef(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
     const characterStateRef = useRef<CharacterState>(CharacterState.Idle);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     const setCharacterState = (state: CharacterState) => {
         characterStateRef.current = state;
         _setCharacterState(state);
@@ -43,7 +45,10 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
             analyser.current = audioContext.current.createAnalyser();
             source.current = audioContext.current.createMediaStreamSource(stream.current);
             source.current.connect(analyser.current);
-            mediaRecorder.current = new MediaRecorder(stream.current);
+
+            const mimeType = supportedTypes.find((type) => MediaRecorder.isTypeSupported(type)) || '';
+
+            mediaRecorder.current = new MediaRecorder(stream.current, { mimeType });
         } catch (err) {
             console.error(err);
         }
@@ -131,9 +136,21 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         }
 
         if (recordedChunks.current.length > 0) {
-            const blob = new Blob(recordedChunks.current, { type: 'audio/webm' });
+            const blob = new Blob(recordedChunks.current, { type: mediaRecorder.current?.mimeType || 'audio/webm' });
+
+            // console.log('🧪 Recorded blob type:', blob.type, 'size:', blob.size);
+            if (blob.size === 0) {
+                console.warn('⚠️ Skipping: Empty audio blob');
+                setCharacterState(CharacterState.Idle);
+                return;
+            }
+
+            const file = new File([blob], 'recording.webm', { type: blob.type });
+            // console.log(blob.type); // should be audio/webm or audio/ogg
+            // console.log(blob.size); // should be > 0
             recordedChunks.current = [];
-            const file = new File([blob], 'audio.webm', { type: 'audio/webm' });
+
+            // console.log('🚀 ~ stopRecording ~ file:', file.type);
             setCharacterState(CharacterState.Speaking);
             await recognize(file);
         } else {
@@ -143,27 +160,41 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
     };
 
     const recognize = async (file: File) => {
-        if (isDebugMode) {
-            onSpeechFoundCallback.current('This is a placeholder transcription in debug mode.');
+        if (file.size === 0) {
+            console.warn('Audio file is empty. Skipping transcription.');
             return;
         }
 
         const formData = new FormData();
         formData.append('file', file);
 
+        // debugging
+        if (isDebugMode) {
+            formData.append('debug', isDebugMode.toString());
+        }
         try {
             setIsTranscribing(true); // ⏳ Show "thinking"
-            const response = await axios.post('/api/v1/transcribe', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            const response = await axios.post('/api/v1/transcribe', formData);
 
             const data = response.data;
             const transcript = data.transcription?.trim();
             onSpeechFoundCallback.current(transcript);
         } catch (error) {
-            console.error('Transcription failed:', error);
+            if (axios.isAxiosError(error)) {
+                const status = error.response?.status;
+                const data = error.response?.data;
+                const message = data?.error || error.message;
+
+                console.error('[Transcribe API Error]', { status, data });
+                setErrorMessage(`Transcription failed (${status}): ${message}`);
+                console.error('Transcription failed:', error.message || error);
+                throw new Error(`Failed to transcribe audio: ${error.message}`);
+            } else {
+                console.error('[Transcribe Error]', error);
+                setErrorMessage(`Audio unsupported or malformed (  ${error}`);
+            }
         } finally {
-            setIsTranscribing(false); // ✅ Done
+            setIsTranscribing(false);
         }
     };
     const onMicButtonPressed = () => {
@@ -188,6 +219,7 @@ const useSpeechRecognition = (stopPlayback?: () => void) => {
         setOnSpeechFoundCallback,
         CharacterState,
         isTranscribing,
+        errorMessage,
     };
 };
 
