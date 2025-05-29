@@ -5,11 +5,7 @@ import { OpenAI } from 'openai';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export const dynamic = 'force-dynamic';
-export enum Role {
-    System = 'system',
-    Assistant = 'assistant',
-    User = 'user',
-}
+ 
 export async function POST(req: NextRequest) {
     try {
         const { prompt, history = [] } = await req.json();
@@ -18,7 +14,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
         }
 
-        const messages = [{ role: Role.System, content: systemContent }, ...history, { role: Role.User, content: prompt }];
+        const messages = [{ role: 'system', content: systemContent }, ...history, { role: 'user', content: prompt }];
 
         const completion = await openai.chat.completions.create({
             model: openaiModal,
