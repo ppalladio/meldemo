@@ -1,11 +1,15 @@
-import { openaiModal, testSystemPrompt, ttsModal, ttsVoice } from '@/lib/constant';
+import { openaiModal, systemContent, ttsModal, ttsVoice } from '@/lib/constant';
 import { NextRequest, NextResponse } from 'next/server';
 import { OpenAI } from 'openai';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export const dynamic = 'force-dynamic';
-
+export enum Role {
+    System = 'system',
+    Assistant = 'assistant',
+    User = 'user',
+}
 export async function POST(req: NextRequest) {
     try {
         const { prompt, history = [] } = await req.json();
@@ -14,15 +18,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
         }
 
-        const messages = [{ role: 'system', content: testSystemPrompt }, ...history, { role: 'user', content: prompt }];
+        const messages = [{ role: Role.System, content: systemContent }, ...history, { role: Role.User, content: prompt }];
 
         const completion = await openai.chat.completions.create({
             model: openaiModal,
             messages,
         });
 
-        const text = ` ${completion.choices[0]?.message?.content ?? '...'}`;
-
+        const text = ` ${completion.choices[0]?.message?.content}`;
+        if (!text) {
+            return NextResponse.json({ error: 'Missing text' }, { status: 400 });
+        }
         const tts = await openai.audio.speech.create({
             model: ttsModal,
             voice: ttsVoice,

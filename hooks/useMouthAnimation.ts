@@ -21,7 +21,7 @@ export function useMouthAnimation({ isReady, pathsById, isSpeaking }: UseMouthAn
         const inside = pathsById['open_mouth_inside'];
 
         if (!lipsOpen || !lipsClosed || !ringOpen || !ringClosed || !inside) {
-            console.warn('  mouth paths missing');
+            console.warn('mouth paths missing');
             return;
         }
 
@@ -49,13 +49,29 @@ export function useMouthAnimation({ isReady, pathsById, isSpeaking }: UseMouthAn
 
         if (isSpeaking) {
             tl = gsap.timeline({ repeat: -1 });
-            tl.to(ringClone, { morphSVG: ringClosed, opacity: 1, duration: 0.8, ease: 'power1.inOut' }, 0)
-                .to(strokeClone, { morphSVG: lipsClosed, duration: 0.8, ease: 'power1.inOut' }, 0)
-                .to({}, { duration: 0.5 })
 
-                .to(ringClone, { morphSVG: ringOpen, opacity: 0, duration: 0.4, ease: 'power2.out' })
-                .to(strokeClone, { morphSVG: lipsOpen, duration: 0.4, ease: 'power2.out' }, '<')
-                .to({}, { duration: 0.3 });
+            const animateMouth = () => {
+                // randomize mouth animation
+                const duration = 0.15 + Math.random() * 0.1;
+                const pause = 0.1 + Math.random() * 0.01;
+
+                tl!
+                    .to(ringClone, { morphSVG: ringClosed, opacity: 1, duration: duration, ease: 'power1.inOut' })
+                    .to(strokeClone, { morphSVG: lipsClosed, duration: duration, ease: 'power1.inOut' }, `<`)
+                    .to({}, { duration: pause })
+
+                    .to(ringClone, { morphSVG: ringOpen, opacity: 0, duration: duration, ease: 'power2.out' })
+                    .to(strokeClone, { morphSVG: lipsOpen, duration: duration, ease: 'power2.out' }, `<`)
+                    .to(
+                        {},
+                        {
+                            duration: pause,
+                            onComplete: animateMouth,
+                        },
+                    );
+            };
+
+            animateMouth();
         }
 
         return () => {
