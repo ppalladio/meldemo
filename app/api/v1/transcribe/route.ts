@@ -1,3 +1,4 @@
+import { responseLanguage } from '@/lib/constant';
 import axios from 'axios';
 import FormData from 'form-data';
 import fs, { createReadStream } from 'fs';
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
         });
         form.append('model', 'whisper-1');
         form.append('response_format', 'text');
-        form.append('language', 'en');
+        form.append('language', responseLanguage);
 
         const response = await axios.post('https://api.openai.com/v1/audio/transcriptions', form, {
             headers: {
