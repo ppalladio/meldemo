@@ -1,3 +1,12 @@
+/**
+ * README: useEyesAnimation Hook
+ *
+ * A React hook that adds natural blinking to an SVG character's eyes.
+ * It clones the open/closed (and optional half-open) eye paths,
+ * hides the originals, and then continuously morphs the clones
+ * between open and closed shapes at random intervals.
+ */
+ 
 // Import GSAP animation library and the MorphSVG plugin for shape morphing
 import { gsap } from 'gsap';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';

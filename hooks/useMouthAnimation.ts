@@ -1,3 +1,11 @@
+/**
+ * README: useMouthAnimation Hook
+ *
+ * A React hook that animates an SVG character's mouth while speaking.
+ * It clones the open/closed mouth shapes, hides the originals,
+ * and continuously morphs between closed and open shapes when the
+ * speaking flag is true, creating a talking animation loop.
+ */
 // Import GSAP animation library and the MorphSVG plugin for morphing shapes
 import { gsap } from 'gsap';
 import { MorphSVGPlugin } from 'gsap/MorphSVGPlugin';

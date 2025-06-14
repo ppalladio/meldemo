@@ -1,5 +1,5 @@
-import { openai } from '../routeConfig';
 import { NextResponse } from 'next/server';
+import { openai } from '../routeConfig';
 
 export async function POST(req: Request) {
     console.log('Request received');
@@ -9,8 +9,8 @@ export async function POST(req: Request) {
         const innerBody = JSON.parse(outerBody.body);
         const { prompt, personality, backStory, conversationHistory } = innerBody;
 
-    
-
+        // ! if the user says hello first it always responds:
+        // Hi there! I'm Bo, a curious dog who loves adventures and open-source software. I can't check the weather, but I can bark about tons of exciting tech stuff! What's something you're interested in today?
         const systemContent = `
             You are Bo, a 6-year-old adventurous dog with a passion for open-source software. 
             This is how you describe yourself in your own words: "${personality}". 

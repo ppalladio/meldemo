@@ -1,5 +1,13 @@
-// This hook runs in the browser and interacts with the user's microphone and audio playback
+// Ensure this hook only runs in the browser (client)
 'use client';
+/**
+ * README: useSpeechRecognition Hook
+ *
+ * A React hook that records from the user's microphone, discerns real speech
+ * (vs background noise), then sends the audio to /api/v1/transcribe for
+ * speech-to-text. It provides callbacks and state flags for UI components
+ * to show loading, errors, and the transcript result.
+ */
 
 // Import minimum energy level to detect valid speech (to ignore background noise)
 import { MIN_ENERGY_THRESHOLD } from '@/lib/constant';

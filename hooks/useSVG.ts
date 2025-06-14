@@ -1,4 +1,15 @@
-// This hook loads an external SVG file and exposes refs and path/group maps
+/**
+ * README: useSVG Hook
+ *
+ * Loads an external SVG file into a container element and provides maps of
+ * group and path elements by their IDs for further manipulation.
+ * Exposes:
+ *   - SVGRef: a ref to attach to a <div> for rendering the SVG.
+ *   - isReady: boolean that becomes true when SVG loading is complete.
+ *   - groupsById: map of <g> group IDs to SVG.js group objects.
+ *   - pathsById: map of <path> IDs to native SVGPathElement nodes.
+ *   - draw: the SVG.js instance for advanced operations.
+ */
 'use client';
 
 // SVG.js types and utilities for parsing and manipulating SVG content

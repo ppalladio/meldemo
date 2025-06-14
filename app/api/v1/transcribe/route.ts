@@ -1,3 +1,16 @@
+/**
+ * README: Transcribe Route
+ *
+ * This file defines a POST endpoint that accepts an uploaded audio file,
+ * sends it to OpenAI's Whisper transcription API, and returns the text result.
+ * Steps:
+ *   1. Validate the uploaded file (must be non-empty audio under 25MB).
+ *   2. Save the file temporarily on disk.
+ *   3. Build a multipart/form-data request to Whisper.
+ *   4. Send to OpenAI and receive plain-text transcription.
+ *   5. Delete the temporary file and respond with the transcript.
+ * Errors are caught and returned as JSON messages.
+ */
 // Import the default language setting for transcription responses
 import { responseLanguage } from '@/lib/constant';
 // axios lets us make HTTP requests to external services

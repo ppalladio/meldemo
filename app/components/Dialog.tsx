@@ -1,3 +1,12 @@
+/**
+ * README: Dialog Component
+ *
+ * A React UI component that handles voice interaction with an AI assistant.
+ * - Shows a text area with transcribed user speech.
+ * - Lets the user start/stop recording via a microphone button.
+ * - Sends the transcribed text to the TTS/AI endpoint.
+ * - Plays back the AI assistant's voice response and shows its text.
+ */
 'use client'; // This component must be rendered on the client (browser)
 
 import { Button } from '@/components/ui/button';

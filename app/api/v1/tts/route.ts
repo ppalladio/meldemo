@@ -1,3 +1,11 @@
+/**
+ * README: TTS Route
+ *
+ * This file defines a POST endpoint that accepts a text prompt and optional chat history,
+ * uses OpenAI's Chat API to generate an AI text reply, then calls OpenAI's TTS API
+ * to convert that text into speech (MP3). The response JSON includes both the AI text
+ * and a Base64-encoded MP3 audio string for playback.
+ */
 // Import our chat and TTS model settings and system prompt
 import { openaiModal, systemContent, ttsModal, ttsVoice } from '@/lib/constant';
 // Next.js types for handling HTTP requests and responses

@@ -1,4 +1,17 @@
-// This hook handles calling the TTS API and playing back audio in the browser
+/**
+ * README: useTTS Hook
+ *
+ * A React hook that converts text into speech by calling the /api/v1/tts endpoint
+ * and plays the returned audio in the browser. It also lets you monitor playback
+ * audio data frames (for visualizations) and stop playback on demand.
+ *
+ * Exposed functions:
+ *   - convert(text): synthesize and play speech for the given text.
+ *   - play(audioBuffer): directly play raw audio bytes and forward PCM data.
+ *   - stopPlayback(): immediately stop any playing speech.
+ *   - setOnProcessCallback(cb): register a callback to receive audio samples.
+ *   - isPlaying: boolean flag indicating if speech is in progress.
+ */
 'use client';
 
 // React hooks for lifecycle, refs, and component state
